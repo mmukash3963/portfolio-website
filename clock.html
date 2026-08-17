@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Analog Clock</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Cinzel:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #0a0a0f;
+      font-family: 'Cormorant Garamond', serif;
+      overflow: hidden;
+    }
+
+    /* Atmospheric background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 60% at 50% 50%, #1a1228 0%, #0a0a0f 70%);
+      z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(circle, rgba(255,255,255,0.018) 1px, transparent 1px);
+      background-size: 28px 28px;
+      z-index: 0;
+    }
+
+    .scene {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 36px;
+      animation: fadeIn 1.8s ease both;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .title {
+      font-family: 'Cinzel', serif;
+      font-size: 11px;
+      letter-spacing: 0.5em;
+      color: #c9a96e;
+      text-transform: uppercase;
+      opacity: 0.85;
+    }
+
+    /* Clock shell */
+    .clock-wrap {
+      position: relative;
+      width: 320px;
+      height: 320px;
+    }
+
+    /* Outer glow ring */
+    .clock-wrap::before {
+      content: '';
+      position: absolute;
+      inset: -18px;
+      border-radius: 50%;
+      background: conic-gradient(
+        from 0deg,
+        #c9a96e22, #c9a96e55, #c9a96e22, #c9a96e55, #c9a96e22
+      );
+      filter: blur(12px);
+      animation: spin 12s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .clock-face {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 35% 35%, #1e1830 0%, #0d0b14 60%, #080710 100%);
+      border: 1.5px solid #c9a96e55;
+      box-shadow:
+        0 0 0 6px #0a0a0f,
+        0 0 0 7px #c9a96e33,
+        0 30px 80px rgba(0,0,0,0.8),
+        inset 0 1px 0 #c9a96e44,
+        inset 0 -1px 0 #00000099;
+      overflow: hidden;
+    }
+
+    /* Inner shimmer */
+    .clock-face::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 25%, rgba(255,255,255,0.04) 0%, transparent 55%);
+    }
+
+    /* Hour markers */
+    .marker {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform-origin: 0 0;
+    }
+
+    .marker-line {
+      position: absolute;
+      background: #c9a96e;
+      border-radius: 2px;
+      transform-origin: center top;
+    }
+
+    /* Roman numerals */
+    .numeral {
+      position: absolute;
+      font-family: 'Cinzel', serif;
+      font-size: 13px;
+      color: #c9a96ecc;
+      transform: translate(-50%, -50%);
+      letter-spacing: 0.05em;
+      user-select: none;
+    }
+
+    /* Hands */
+    .hand {
+      position: absolute;
+      bottom: 50%;
+      left: 50%;
+      transform-origin: bottom center;
+      border-radius: 4px 4px 0 0;
+    }
+
+    #hour-hand {
+      width: 5px;
+      height: 90px;
+      margin-left: -2.5px;
+      background: linear-gradient(to top, #c9a96e, #e8cc8a, #c9a96e);
+      box-shadow: 0 0 10px #c9a96e66;
+      border-radius: 3px 3px 0 0;
+    }
+
+    #minute-hand {
+      width: 3px;
+      height: 118px;
+      margin-left: -1.5px;
+      background: linear-gradient(to top, #d4b87a, #f0dfa0, #d4b87a);
+      box-shadow: 0 0 8px #c9a96e55;
+      border-radius: 2px 2px 0 0;
+    }
+
+    #second-hand {
+      width: 1.5px;
+      height: 128px;
+      margin-left: -0.75px;
+      background: linear-gradient(to top, #e05555, #ff7070);
+      box-shadow: 0 0 6px #ff555588;
+      border-radius: 1px;
+    }
+
+    /* Counter weight for second hand */
+    #second-hand::after {
+      content: '';
+      position: absolute;
+      bottom: -22px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 1.5px;
+      height: 20px;
+      background: #e05555;
+      border-radius: 1px;
+    }
+
+    /* Center jewel */
+    .center-jewel {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #f0dfa0, #c9a96e 50%, #8a6c30);
+      box-shadow:
+        0 0 0 2px #0d0b14,
+        0 0 0 3px #c9a96e88,
+        0 2px 8px rgba(0,0,0,0.6);
+      z-index: 10;
+    }
+
+    /* Subdial ring (decorative) */
+    .subdial {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, calc(-50% + 52px));
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      border: 1px solid #c9a96e44;
+      box-shadow: inset 0 0 12px rgba(0,0,0,0.5);
+    }
+
+    /* Digital date */
+    .date-display {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 13px;
+      letter-spacing: 0.2em;
+      color: #c9a96eaa;
+      font-weight: 300;
+    }
+
+    .time-text {
+      font-family: 'Cinzel', serif;
+      font-size: 14px;
+      letter-spacing: 0.3em;
+      color: #c9a96e88;
+    }
+  </style>
+</head>
+<body>
+  <div class="scene">
+    <div class="title">Chronos &nbsp;·&nbsp; Tempus Fugit</div>
+
+    <div class="clock-wrap">
+      <div class="clock-face" id="clock">
+        <!-- Markers and numerals injected by JS -->
+        <div class="subdial"></div>
+        <div class="hand" id="hour-hand"></div>
+        <div class="hand" id="minute-hand"></div>
+        <div class="hand" id="second-hand"></div>
+        <div class="center-jewel"></div>
+      </div>
+    </div>
+
+    <div class="date-display" id="date-display"></div>
+    <div class="time-text" id="time-text"></div>
+  </div>
+
+  <script>
+    const clock = document.getElementById('clock');
+    const romanNumerals = ['XII','I','II','III','IV','V','VI','VII','VIII','IX','X','XI'];
+    const radius = 130;
+    const cx = 160, cy = 160;
+
+    // Inject hour markers & numerals
+    for (let i = 0; i < 60; i++) {
+      const angle = (i / 60) * 360;
+      const rad = (angle - 90) * Math.PI / 180;
+      const isMajor = i % 5 === 0;
+
+      const len = isMajor ? 14 : 6;
+      const thick = isMajor ? 2 : 1;
+      const color = isMajor ? '#c9a96e' : '#c9a96e66';
+      const r1 = 138, r2 = r1 - len;
+
+      const x1 = cx + r1 * Math.cos(rad);
+      const y1 = cy + r1 * Math.sin(rad);
+      const x2 = cx + r2 * Math.cos(rad);
+      const y2 = cy + r2 * Math.sin(rad);
+
+      const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+      svg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;overflow:visible;';
+      const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.setAttribute('x1', x1); line.setAttribute('y1', y1);
+      line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+      line.setAttribute('stroke', color);
+      line.setAttribute('stroke-width', thick);
+      line.setAttribute('stroke-linecap', 'round');
+      svg.appendChild(line);
+      clock.appendChild(svg);
+
+      // Roman numerals for major markers
+      if (isMajor) {
+        const nr = 106;
+        const nx = cx + nr * Math.cos(rad);
+        const ny = cy + nr * Math.sin(rad);
+        const num = document.createElement('div');
+        num.className = 'numeral';
+        num.textContent = romanNumerals[i / 5];
+        num.style.left = nx + 'px';
+        num.style.top = ny + 'px';
+        clock.appendChild(num);
+      }
+    }
+
+    const hourHand   = document.getElementById('hour-hand');
+    const minuteHand = document.getElementById('minute-hand');
+    const secondHand = document.getElementById('second-hand');
+    const dateDisplay = document.getElementById('date-display');
+    const timeText    = document.getElementById('time-text');
+
+    const days   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+    function tick() {
+      const now = new Date();
+      const h = now.getHours(), m = now.getMinutes(), s = now.getSeconds(), ms = now.getMilliseconds();
+
+      const secDeg  = (s + ms / 1000) * 6;
+      const minDeg  = (m + s / 60) * 6;
+      const hourDeg = ((h % 12) + m / 60) * 30;
+
+      hourHand.style.transform   = `rotate(${hourDeg}deg)`;
+      minuteHand.style.transform = `rotate(${minDeg}deg)`;
+      secondHand.style.transform = `rotate(${secDeg}deg)`;
+
+      // Date
+      dateDisplay.textContent = `${days[now.getDay()]}  ·  ${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+
+      // Time text
+      const hh = String(h).padStart(2,'0');
+      const mm = String(m).padStart(2,'0');
+      const ss = String(s).padStart(2,'0');
+      timeText.textContent = `${hh} : ${mm} : ${ss}`;
+
+      requestAnimationFrame(tick);
+    }
+
+    tick();
+  </script>
+</body>
+</html>
